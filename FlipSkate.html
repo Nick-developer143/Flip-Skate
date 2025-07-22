@@ -1,0 +1,548 @@
+<!DOCTYPE html>
+<html lang="en" id="html-lang">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Flip Skate</title>
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Press Start 2P', cursive;
+            background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d);
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+            touch-action: manipulation;
+        }
+
+        #game-container {
+            position: relative;
+            width: 360px;
+            height: 640px;
+            background: linear-gradient(#87CEEB, #E0F7FA);
+            overflow: hidden;
+            border-radius: 10px;
+            box-shadow: 0 0 30px rgba(0,0,0,0.6);
+        }
+
+        #skate {
+            position: absolute;
+            width: 50px;
+            height: 32px;
+            left: 80px;
+            background-image: url('https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/a60a5e23-99ee-4329-9e36-3bbfefe9eba3.png');
+            background-size: contain;
+            z-index: 10;
+            transition: transform 100ms;
+        }
+
+        .obstacle {
+            position: absolute;
+            width: 70px;
+            background-color: #6D4C41;
+            right: -70px;
+            border: 3px solid #3E2723;
+            border-radius: 5px;
+        }
+
+        #top-obstacle {
+            top: 0;
+            height: 200px;
+            background-image: url('https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/f0ca3221-75e2-4e95-b9a7-d07cecca19ce.png');
+        }
+
+        #bottom-obstacle {
+            bottom: 0;
+            height: 200px;
+            background-image: url('https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/42c2e6c6-45e4-40d6-816e-12338e7a58c0.png');
+        }
+
+        #ground {
+            position: absolute;
+            height: 30px;
+            width: 100%;
+            background-color: #4E342E;
+            bottom: 0;
+            z-index: 15;
+            background-image: url('https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/d89a128e-8781-425c-91d7-8a8cc3d88526.png');
+            background-repeat: repeat-x;
+        }
+
+        #score-container {
+            position: absolute;
+            top: 20px;
+            width: 100%;
+            text-align: center;
+            font-size: 24px;
+            color: white;
+            text-shadow: 3px 3px 0 #000;
+            z-index: 20;
+        }
+
+        #start-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 30;
+            text-align: center;
+        }
+        
+        #game-over-screen {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0,0,0,0.8);
+            display: none;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: white;
+            z-index: 30;
+            text-align: center;
+        }
+
+        #game-over-screen {
+            display: none;
+        }
+
+        h1 {
+            font-size: 28px;
+            margin-bottom: 20px;
+            color: #FFD700;
+            text-shadow: 3px 3px 0 #000;
+        }
+
+        p {
+            font-size: 16px;
+            margin-bottom: 30px;
+            padding: 0 20px;
+            line-height: 1.5;
+        }
+
+        button {
+            background-color: #FF5252;
+            color: white;
+            border: none;
+            padding: 12px 24px;
+            font-size: 18px;
+            font-family: inherit;
+            border-radius: 5px;
+            cursor: pointer;
+            box-shadow: 3px 3px 0 #000;
+            transition: all 0.2s;
+        }
+
+        .lang-btn {
+            padding: 8px 12px;
+            font-size: 14px;
+            margin: 0 3px;
+        }
+        
+        button:hover {
+            background-color: #FF6D6D;
+            transform: translate(-1px, -1px);
+            box-shadow: 4px 4px 0 #000;
+        }
+
+        button:active {
+            transform: translate(1px, 1px);
+            box-shadow: 2px 2px 0 #000;
+        }
+
+        #final-score {
+            font-size: 24px;
+            color: #FFD700;
+            margin: 20px 0;
+        }
+
+        #best-score {
+            font-size: 18px;
+            color: #4CAF50;
+            margin-bottom: 20px;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-20px); }
+        }
+
+        .cloud {
+            position: absolute;
+            background-image: url('https://storage.googleapis.com/workspace-0f70711f-8b4e-4d94-86f1-2a93ccde5887/image/3f0bf3e4-1700-4d41-b81f-f30eade0d1f4.png');
+            background-size: contain;
+            background-repeat: no-repeat;
+            width: 100px;
+            height: 60px;
+            z-index: 1;
+        }
+    </style>
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
+<body>
+    <div id="game-container">
+        <div id="skate"></div>
+        <div id="top-obstacle" class="obstacle"></div>
+        <div id="bottom-obstacle" class="obstacle"></div>
+        <div id="ground"></div>
+        <div id="score-container">0</div>
+
+        <!-- Nuvens decorativas -->
+        <div class="cloud" style="top: 50px; left: 50px;"></div>
+        <div class="cloud" style="top: 120px; left: 250px;"></div>
+        <div class="cloud" style="top: 300px; left: 150px;"></div>
+
+        <!-- Tela de início -->
+        <div id="start-screen">
+            <h1>FLIP SKATE</h1>
+            <p>Avoid obstacles in the course!</p>
+            <p>Click or tap to jump</p>
+            <div style="margin:15px 0;">
+                <button class="lang-btn" data-lang="en">English</button>
+                <button class="lang-btn" data-lang="es">Español</button>
+                <button class="lang-btn" data-lang="pt">Português</button>
+            </div>
+            <button id="start-btn">START</button>
+            <p style="position: absolute; bottom: 20px; font-size: 12px;">© copyright Nicolas Ribeiro Fagundes 2025</p>
+        </div>
+
+        <!-- Áudio -->
+        <audio id="bg-music" src="https://www.myinstants.com/media/sounds/megalovania.mp3" loop></audio>
+        <audio id="flip-sound" src="https://www.myinstants.com/media/sounds/smb_kick.mp3"></audio>
+
+        <!-- Tela de game over -->
+        <div id="game-over-screen">
+            <h1>GAME OVER</h1>
+            <div id="final-score">Score: 0</div>
+            <div id="best-score">High Score: 0</div>
+            <button id="restart-btn">PLAY AGAIN</button>
+        </div>
+    </div>
+
+    <script>
+        // Elementos do jogo
+        const skate = document.getElementById('skate');
+        const topObstacle = document.getElementById('top-obstacle');
+        const bottomObstacle = document.getElementById('bottom-obstacle');
+        const ground = document.getElementById('ground');
+        const scoreDisplay = document.getElementById('score-container');
+        const startScreen = document.getElementById('start-screen');
+        const gameOverScreen = document.getElementById('game-over-screen');
+        const finalScoreDisplay = document.getElementById('final-score');
+        const bestScoreDisplay = document.getElementById('best-score');
+        const startBtn = document.getElementById('start-btn');
+        const restartBtn = document.getElementById('restart-btn');
+
+        // Game variables
+        let skateY = 300;
+        let skateVelocity = 0;
+        const gravity = 0.4;
+        let gameSpeed = 2;
+        let gapHeight = 200;
+        let obstacleSpeed = 2;
+        let score = 0;
+        let bestScore = 0;
+        let gameRunning = false;
+        let animationId;
+        let obstaclePassed = false;
+
+        // Initial setup
+        function initGame() {
+            skateY = 300;
+            skateVelocity = 0;
+            skate.style.top = skateY + 'px';
+            skate.style.transform = 'rotate(0deg)';
+            
+            // Reset obstacles with random heights
+            const topHeight = Math.floor(Math.random() * 200) + 50;
+            topObstacle.style.height = topHeight + 'px';
+            bottomObstacle.style.height = (400 - topHeight - gapHeight) + 'px';
+            topObstacle.style.right = '-70px';
+            bottomObstacle.style.right = '-70px';
+            
+            score = 0;
+            obstacleSpeed = 2;
+            scoreDisplay.textContent = '0';
+            obstaclePassed = false;
+            gameOverScreen.style.display = 'none';
+        }
+
+        // Jump
+        function jump() {
+            if (!gameRunning) return;
+            skateVelocity = -8;
+            
+            // Efeito visual de rotação
+            skate.style.transform = 'rotate(-20deg)';
+            setTimeout(() => {
+                skate.style.transform = 'rotate(0deg)';
+            }, 200);
+            
+            // Som de pulo (criado dinamicamente)
+            playSound(200, 'sine', 0.1, 0.01);
+        }
+
+        // Atualizar posição do skate
+        function updateSkate() {
+            skateVelocity += gravity;
+            skateY += skateVelocity;
+            skate.style.top = skateY + 'px';
+        }
+
+        // Atualizar obstáculos
+        function updateObstacles() {
+            let topPos = parseInt(topObstacle.style.right || '-70px');
+            let bottomPos = parseInt(bottomObstacle.style.right || '-70px');
+
+            topPos += obstacleSpeed;
+            bottomPos += obstacleSpeed;
+
+            // Reposicionar obstáculos quando saem da tela
+            if (topPos > 360) {
+                topPos = -70;
+                bottomPos = -70;
+                
+                // Altura aleatória para os obstáculos
+                const topHeight = Math.floor(Math.random() * 200) + 50;
+                topObstacle.style.height = topHeight + 'px';
+                bottomObstacle.style.height = (400 - topHeight - gapHeight) + 'px';
+                
+                obstaclePassed = false;
+                
+                // Aumentar dificuldade gradualmente
+                if (score % 5 === 0) {
+                    obstacleSpeed += 0.2;
+                }
+            }
+
+            topObstacle.style.right = topPos + 'px';
+            bottomObstacle.style.right = bottomPos + 'px';
+
+            // Verificar se o skate passou pelo obstáculo
+            if (!obstaclePassed && topPos > 80 && topPos < 100) {
+                obstaclePassed = true;
+                score++;
+                scoreDisplay.textContent = score;
+                if (score === 10) {
+                    document.getElementById('flip-sound').play();
+                    skate.style.transition = 'transform 0.5s ease-in-out';
+                    skate.style.transform = 'rotate(360deg)';
+                    setTimeout(() => {
+                        skate.style.transform = 'rotate(0deg)';
+                        skate.style.transition = 'transform 0.1s';
+                    }, 500);
+                    // Add bouncing effect
+                    skate.style.animation = 'bounce 0.5s';
+                    setTimeout(() => {
+                        skate.style.animation = '';
+                    }, 500);
+                }
+                
+                // Som de ponto
+                playSound(500, 'square', 0.1, 0.05);
+            }
+        }
+
+        // Verificar colisões
+        function checkCollisions() {
+            const skateRect = skate.getBoundingClientRect();
+            const topRect = topObstacle.getBoundingClientRect();
+            const bottomRect = bottomObstacle.getBoundingClientRect();
+            const groundRect = ground.getBoundingClientRect();
+
+            // Verificar colisão com obstáculos
+            if (
+                skateRect.right > topRect.left && 
+                skateRect.left < topRect.right &&
+                skateRect.bottom > topRect.top
+            ) {
+                gameOver();
+                return;
+            }
+
+            if (
+                skateRect.right > bottomRect.left && 
+                skateRect.left < bottomRect.right &&
+                skateRect.top < bottomRect.bottom
+            ) {
+                gameOver();
+                return;
+            }
+
+            // Verificar colisão com o chão ou teto
+            const groundTop = 640 - 30; // Height - ground height
+            if (skateY < 0 || skateY + 32 > groundTop) {
+                gameOver();
+            }
+        }
+
+        // Game Over
+        function gameOver() {
+            gameRunning = false;
+            cancelAnimationFrame(animationId);
+            
+            // Atualizar recorde
+            if (score > bestScore) {
+                bestScore = score;
+                bestScoreDisplay.textContent = 'Recorde: ' + bestScore;
+            }
+            
+            finalScoreDisplay.textContent = 'Pontuação: ' + score;
+            gameOverScreen.style.display = 'flex';
+            
+            // Som de game over
+            playSound(100, 'sawtooth', 0.2, 0.3);
+        }
+
+        // Loop do jogo
+        function gameLoop() {
+            updateSkate();
+            updateObstacles();
+            checkCollisions();
+            
+            if (gameRunning) {
+                animationId = requestAnimationFrame(gameLoop);
+            }
+        }
+
+        // Language texts
+        const texts = {
+            'en': {
+                title: 'FLIP SKATE',
+                instruction1: 'Avoid obstacles in the course!',
+                instruction2: 'Click or tap to jump',
+                startBtn: 'START',
+                gameOver: 'GAME OVER',
+                score: 'Score: 0',
+                highScore: 'High Score: 0',
+                restart: 'PLAY AGAIN',
+                copyright: '© copyright Nicolas Ribeiro Fagundes 2025'
+            },
+            'es': {
+                title: 'FLIP SKATE',
+                instruction1: '¡Evita obstáculos en el recorrido!',
+                instruction2: 'Haz clic o toca para saltar',
+                startBtn: 'EMPEZAR',
+                gameOver: 'FIN DEL JUEGO',
+                score: 'Puntaje: 0',
+                highScore: 'Récord: 0',
+                restart: 'JUGAR DE NUEVO',
+                copyright: '© derechos de autor Nicolas Ribeiro Fagundes 2025'
+            },
+            'pt': {
+                title: 'FLIP SKATE',
+                instruction1: 'Desvie dos obstáculos no percurso!',
+                instruction2: 'Clique ou toque para pular',
+                startBtn: 'COMEÇAR',
+                gameOver: 'FIM DE JOGO',
+                score: 'Pontuação: 0',
+                highScore: 'Recorde: 0',
+                restart: 'JOGAR NOVAMENTE',
+                copyright: '© direitos autorais Nicolas Ribeiro Fagundes 2025'
+            }
+        };
+
+        // Set language
+        function setLanguage(lang) {
+            const t = texts[lang];
+            document.querySelector('#start-screen h1').textContent = t.title;
+            document.querySelector('#start-screen p:nth-of-type(1)').textContent = t.instruction1;
+            document.querySelector('#start-screen p:nth-of-type(2)').textContent = t.instruction2;
+            document.getElementById('start-btn').textContent = t.startBtn;
+            document.querySelector('#game-over-screen h1').textContent = t.gameOver;
+            document.getElementById('final-score').textContent = t.score;
+            document.getElementById('best-score').textContent = t.highScore;
+            document.getElementById('restart-btn').textContent = t.restart;
+            document.querySelector('#start-screen p[style]').textContent = t.copyright;
+            document.documentElement.lang = lang;
+        }
+
+        // Set up language buttons
+        document.querySelectorAll('.lang-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                setLanguage(btn.dataset.lang);
+            });
+        });
+
+        // Iniciar jogo
+        startBtn.addEventListener('click', () => {
+            startScreen.style.display = 'none';
+            initGame();
+            gameRunning = true;
+            document.getElementById('bg-music').play();
+            gameLoop();
+        });
+
+        // Reiniciar jogo
+        restartBtn.addEventListener('click', () => {
+            gameOverScreen.style.display = 'none';
+            initGame();
+            gameRunning = true;
+            const bgMusic = document.getElementById('bg-music');
+            bgMusic.volume = 0.3; // Lower volume
+            bgMusic.play().catch(e => console.log("Autoplay prevented:", e));
+            gameLoop();
+        });
+
+        // Controles
+        document.addEventListener('keydown', (e) => {
+            if (e.code === 'Space' || e.key === ' ') {
+                jump();
+            }
+        });
+
+        document.addEventListener('click', jump);
+        document.addEventListener('touchstart', jump);
+
+        // Sistema de som simples com Web Audio API
+        function playSound(freq, type, vol, duration) {
+            try {
+                const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+                const oscillator = audioCtx.createOscillator();
+                const gainNode = audioCtx.createGain();
+                
+                oscillator.type = type;
+                oscillator.frequency.value = freq;
+                gainNode.gain.value = vol;
+                
+                oscillator.connect(gainNode);
+                gainNode.connect(audioCtx.destination);
+                
+                oscillator.start();
+                gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + duration);
+                oscillator.stop(audioCtx.currentTime + duration);
+            } catch (e) {
+                console.log("Erro de áudio:", e);
+            }
+        }
+
+        // Efeito de retroalimentação para pulo
+        function jumpEffect() {
+            skate.animate([
+                { transform: 'translateY(0)' },
+                { transform: 'translateY(-10px)' },
+                { transform: 'translateY(0)' }
+            ], {
+                duration: 200,
+                easing: 'ease-out'
+            });
+        }
+    </script>
+</body>
+</html>
